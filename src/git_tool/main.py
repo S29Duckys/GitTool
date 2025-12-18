@@ -34,7 +34,22 @@ def login_github(token):
 
     input("\nEntrée pour continuer")
 
+def get_repos():
+    global github_client
 
+    if not github_client:
+        print("[red]Pas connecté [/red]")
+        input("Entrée pour continuer")
+        return
+
+    user = github_client.get_user()
+    repos = user.get_repos()
+
+    print(f"[bold cyan]Repos de {user.login} :[/bold cyan]\n")
+
+    for repo in repos:
+        print(f"- [green]{repo.name}[/green] : {repo.html_url}")
+    
 
 def user_info():
     if not github_client:
@@ -57,7 +72,8 @@ def user_info():
         key = readchar.readkey().lower()
 
         if key == "e":
-            print("\nhello world")
+            get_repos()
+            break
         elif key == "q":
             break
 
