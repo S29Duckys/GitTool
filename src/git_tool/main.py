@@ -1,4 +1,6 @@
 import os
+import getpass
+import readchar
 import requests
 from rich import print
 from github import Github
@@ -33,6 +35,7 @@ def login_github(token):
     input("\nEntrée pour continuer")
 
 
+
 def user_info():
     if not github_client:
         print("[red]Pas connecté [/red]")
@@ -45,9 +48,18 @@ def user_info():
         [bold cyan]Repos[/bold cyan]    : [yellow]{user.public_repos}[/yellow]
         [bold cyan]Followers[/bold cyan]: [yellow]{user.followers}[/yellow]
         [bold cyan]Following[/bold cyan]: [yellow]{user.following}[/ yellow]
+        \n\n\n
+    [E] Display the repo
+    [Q] Retour
     """)
+    
+    while True:
+        key = readchar.readkey().lower()
 
-    input("Entrée pour continuer")
+        if key == "e":
+            print("\nhello world")
+        elif key == "q":
+            break
 
 def bool_menu():
     style = Style.from_dict({
@@ -116,7 +128,7 @@ def main():
 
         if choice == "1":
             if not github_client:
-                token = input("GitHub Token > ").strip()
+                token = getpass.getpass("GitHub Token > ").strip()
                 login_github(token)
             else:
                 user_info()
