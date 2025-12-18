@@ -2,6 +2,7 @@ import os
 import requests
 from rich import print
 from github import Github
+from prompt_toolkit.styles import Style
 from prompt_toolkit.shortcuts import radiolist_dialog
 
 github_client = None
@@ -49,42 +50,46 @@ def user_info():
     input("Entrée pour continuer")
 
 def bool_menu():
+    style = Style.from_dict({
+        "radiolist": "bg:#000000 #ffffff",
+        "radiolist.selected": "bg:#ffff00 #000000", 
+    })
+
     result = radiolist_dialog(
         title="Choix",
-        text="Sélectionne une option :",
+        text="Private repo ?",
         values=[
             (True, "True"),
             (False, "False"),
         ],
-        style={
-            "radiolist": "bg:#000000 #ffffff",
-            "radiolist.selected": "bg:#ffff00 #000000",  # jaune
-        }
+        style=style
     ).run()
 
     return result
 
-def create_repo(name, des):
+def create_repo(name, des, private):
     global github_client, current_user
 
     user = github_client.get_user()
 
     repo = user.create_repo(
-    name=name,
-    description=des,
-    private=False
+        name=name,
+        description=des,
+        private=private
     )
 
-    print("Repo créé :", repo.html_url)
+    print("[green]Repo créé ![/green]", repo.html_url)
+    input("Entrée pour continuer")
 
 def menu():
-    print("""
+    print("""[bold red]
  ██████╗ ██╗████████╗   ████████╗ ██████╗  ██████╗ ██╗     
 ██╔════╝ ██║╚══██╔══╝   ╚══██╔══╝██╔═══██╗██╔═══██╗██║     
 ██║  ███╗██║   ██║         ██║   ██║   ██║██║   ██║██║     
 ██║   ██║██║   ██║         ██║   ██║   ██║██║   ██║██║     
 ╚██████╔╝██║   ██║         ██║   ╚██████╔╝╚██████╔╝███████╗
  ╚═════╝ ╚═╝   ╚═╝         ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝
+[/bold red]
     """)
 
     if not github_client:
@@ -118,8 +123,8 @@ def main():
         elif choice == "2":
             name_repo = input("Name of the repo : ")
             def_repo = input("Description of the repo : ")
-            bool_menu()
-            create_repo(name_repo, def_repo)
+            private = bool_menu()  
+            create_repo(name_repo, def_repo, private)
         elif choice == "*":
             clear()
             print('viole moi')
