@@ -4,6 +4,7 @@ import getpass
 import readchar
 import requests
 from rich import print
+from dotenv import load_dotenv
 from github import Github
 from prompt_toolkit.styles import Style
 from prompt_toolkit.shortcuts import radiolist_dialog
@@ -206,6 +207,7 @@ def menu():
 
     if not github_client:
         print("[1] Connect GitHub")
+        print("[2] Use token saved")
     else:
         print(f"[green]Connecté : {current_user}[/green]")
         print("[1] Infos compte")
@@ -227,11 +229,19 @@ def main():
         except KeyboardInterrupt:
             break
 
-        if choice == "1":
-            if not github_client:
+        if not github_client:
+            if choice == "1":
                 token = getpass.getpass("GitHub Token > ").strip()
                 login_github(token)
-            else:
+            elif choice == "2":
+                load_dotenv()
+                token = os.getenv("TOKEN")
+                if token:
+                    login_github(token)
+                else:
+                    print("[red]No token found in .env file[/red]")
+                    input("Entrée pour continuer")
+        elif choice == "1":
                 user_info()
         elif choice == "2":
             name_repo = input("Name of the repo : ")

@@ -1,0 +1,3 @@
+# Token saved in .gitignore
+.env
+!.env.example
