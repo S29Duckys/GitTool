@@ -1,4 +1,5 @@
 import os
+import time
 import getpass
 import readchar
 import requests
@@ -34,7 +35,55 @@ def login_github(token):
 
     input("\nEntrée pour continuer")
 
-def get_repos():
+def serch_user(username):
+    global github_client
+
+    if not github_client:
+        print("[red]Pas connecté [/red]")
+        input("Entrée pour continuer")
+        return
+
+    try:
+        user = github_client.get_user(username)
+        
+        # Récupérer les clés (peuvent être vides)
+        try:
+            gpg_keys_count = len(list(user.get_gpg_keys()))
+            ssh_keys_count = len(list(user.get_keys()))
+        except:
+            gpg_keys_count = "N/A"
+            ssh_keys_count = "N/A"
+        
+        print(f"""
+        [bold cyan]Username[/bold cyan]       : [green]{user.login}[/green]
+        [bold cyan]Name[/bold cyan]           : [green]{user.name or 'N/A'}[/green]
+        [bold cyan]ID[/bold cyan]             : [green]{user.id}[/green]
+        [bold cyan]Bio[/bold cyan]            : [green]{user.bio or 'N/A'}[/green]
+        [bold cyan]Company[/bold cyan]        : [green]{user.company or 'N/A'}[/green]
+        [bold cyan]Location[/bold cyan]       : [green]{user.location or 'N/A'}[/green]
+        [bold cyan]Blog[/bold cyan]           : [green]{user.blog or 'N/A'}[/green]
+        [bold cyan]Email[/bold cyan]          : [green]{user.email or 'N/A'}[/green]
+        
+        [bold cyan]Repos publics[/bold cyan]  : [yellow]{user.public_repos}[/yellow]
+        [bold cyan]Gists publics[/bold cyan]  : [yellow]{user.public_gists}[/yellow]
+        [bold cyan]Followers[/bold cyan]      : [yellow]{user.followers}[/yellow]
+        [bold cyan]Following[/bold cyan]      : [yellow]{user.following}[/yellow]
+        
+        [bold cyan]Compte créé le[/bold cyan] : [green]{user.created_at}[/green]
+        [bold cyan]Mis à jour le[/bold cyan]  : [green]{user.updated_at}[/green]
+        
+        [bold cyan]Clés GPG[/bold cyan]       : [green]{gpg_keys_count}[/green]
+        [bold cyan]Clés SSH[/bold cyan]       : [green]{ssh_keys_count}[/green]
+        [bold cyan]Profile URL[/bold cyan]    : [blue]{user.html_url}[/blue]
+        """)
+        
+    except Exception as e:
+        print(f"[red]Erreur: {str(e)}[/red]")
+        print("[red]Utilisateur non trouvé ou erreur de connexion[/red]")
+    
+    input("\nEntrée pour continuer")
+
+def get_repo():
     global github_client
 
     if not github_client:
@@ -46,10 +95,37 @@ def get_repos():
     repos = user.get_repos()
 
     print(f"[bold cyan]Repos de {user.login} :[/bold cyan]\n")
-
+    i = 0
     for repo in repos:
-        print(f"- [green]{repo.name}[/green] : {repo.html_url}")
+        i += 1
+        print(f"{i}  -- [green]{repo.name}[/green] : {repo.html_url}")
+
+    print("\n[E] Delete a repo")
+    print('[Q] Retour')
+    while True:
+        key = readchar.readkey().lower()
+
+        if key == "e":
+                
+            break
+        elif key == "q":
+            break
     
+def delete_repo(repo_name):
+    global github_client
+
+    if not github_client:
+        print("[red]Pas connecté [/red]")
+        input("Entrée pour continuer")
+        return
+    user = github_client.get_user()
+    try:
+        repo = user.get_repo(repo_name)
+        repo.delete()
+        print(f"[green]Repo {repo_name} supprimé ![/green]")
+    except Exception as e:
+        print(f"[red]Erreur: {str(e)}[/red]")
+        print("[red]Repo non trouvé ou erreur de connexion[/red]")
 
 def user_info():
     if not github_client:
@@ -72,8 +148,16 @@ def user_info():
         key = readchar.readkey().lower()
 
         if key == "e":
-            get_repos()
-            break
+            get_repo()
+            while True:
+                key = readchar.readkey().lower()            
+                if key == "q":
+                    break
+                elif key == 'e':
+                    repo_name = input("Name of the repo to delete : ")
+                    delete_repo(repo_name)
+                    input("Entrée pour continuer")
+                    break
         elif key == "q":
             break
 
@@ -126,6 +210,7 @@ def menu():
         print(f"[green]Connecté : {current_user}[/green]")
         print("[1] Infos compte")
         print("[2] Create repo")
+        print("[3] Search user")
 
 
     print("[*] Clear")
@@ -153,13 +238,15 @@ def main():
             def_repo = input("Description of the repo : ")
             private = bool_menu()  
             create_repo(name_repo, def_repo, private)
+        elif choice == "3":
+            serch_username = input("Username to search : ")
+            serch_user(serch_username)
         elif choice == "*":
             clear()
             print('viole moi')
 
         elif choice == "0":
             break
-
 
 if __name__ == "__main__":
     main()
